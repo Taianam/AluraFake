@@ -8,7 +8,7 @@ import jakarta.persistence.Entity;
 @DiscriminatorValue("OPEN_TEXT")
 public class OpenTextTask extends Task {
 
-    protected OpenTextTask() {}
+    public OpenTextTask() {}
 
     public OpenTextTask(String statement, Integer orderNumber, Course course) {
         super(statement, orderNumber, course, Type.OPEN_TEXT);

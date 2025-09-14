@@ -21,7 +21,6 @@ public class Course {
     private Status status;
     private LocalDateTime publishedAt;
 
-    @Deprecated
     public Course(){}
 
     public Course(String title, String description, User instructor) {
@@ -66,5 +65,10 @@ public class Course {
     
     public void setPublishedAt(LocalDateTime publishedAt) {
         this.publishedAt = publishedAt;
+    }
+    
+    public void publish() {
+        this.status = Status.PUBLISHED;
+        this.publishedAt = LocalDateTime.now();
     }
 }

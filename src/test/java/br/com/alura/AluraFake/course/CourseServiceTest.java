@@ -1,9 +1,17 @@
 package br.com.alura.AluraFake.course;
 
-import br.com.alura.AluraFake.task.*;
-import br.com.alura.AluraFake.user.Role;
-import br.com.alura.AluraFake.user.User;
-import br.com.alura.AluraFake.user.UserRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,13 +19,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import br.com.alura.AluraFake.task.Task;
+import br.com.alura.AluraFake.task.TaskRepository;
+import br.com.alura.AluraFake.task.Type;
+import br.com.alura.AluraFake.user.Role;
+import br.com.alura.AluraFake.user.User;
+import br.com.alura.AluraFake.user.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
@@ -28,31 +35,33 @@ class CourseServiceTest {
     @Mock
     private TaskRepository taskRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private CourseService courseService;
 
     @Test
     void shouldPublishCourseSuccessfully() {
         Course course = new Course();
-        course.setId(1L);
         course.setStatus(Status.BUILDING);
 
-        OpenTextTask openTask = new OpenTextTask();
-        openTask.setTaskOrder(1);
-        openTask.setType(Type.OPEN_TEXT);
+        Task openTask = mock(Task.class);
+        when(openTask.getTaskOrder()).thenReturn(1);
+        when(openTask.getType()).thenReturn(Type.OPEN_TEXT);
 
-        SingleChoiceTask singleTask = new SingleChoiceTask();
-        singleTask.setTaskOrder(2);
-        singleTask.setType(Type.SINGLE_CHOICE);
+        Task singleTask = mock(Task.class);
+        when(singleTask.getTaskOrder()).thenReturn(2);
+        when(singleTask.getType()).thenReturn(Type.SINGLE_CHOICE);
 
-        MultipleChoiceTask multipleTask = new MultipleChoiceTask();
-        multipleTask.setTaskOrder(3);
-        multipleTask.setType(Type.MULTIPLE_CHOICE);
+        Task multipleTask = mock(Task.class);
+        when(multipleTask.getTaskOrder()).thenReturn(3);
+        when(multipleTask.getType()).thenReturn(Type.MULTIPLE_CHOICE);
 
         List<Task> tasks = Arrays.asList(openTask, singleTask, multipleTask);
 
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
-        when(taskRepository.findByCourseIdOrderByTaskOrder(1L)).thenReturn(tasks);
+        when(taskRepository.findByCourseIdOrderByOrderNumber(1L)).thenReturn(tasks);
 
         courseService.publishCourse(1L);
 
@@ -89,14 +98,13 @@ class CourseServiceTest {
         Course course = new Course();
         course.setStatus(Status.BUILDING);
 
-        OpenTextTask openTask = new OpenTextTask();
-        openTask.setTaskOrder(1);
-        openTask.setType(Type.OPEN_TEXT);
+        Task openTask = mock(Task.class);
+        when(openTask.getType()).thenReturn(Type.OPEN_TEXT);
 
         List<Task> tasks = Arrays.asList(openTask);
 
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
-        when(taskRepository.findByCourseIdOrderByTaskOrder(1L)).thenReturn(tasks);
+        when(taskRepository.findByCourseIdOrderByOrderNumber(1L)).thenReturn(tasks);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
             () -> courseService.publishCourse(1L));
@@ -105,30 +113,46 @@ class CourseServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenTaskOrderNotContinuous() {
-        Course course = new Course();
-        course.setStatus(Status.BUILDING);
+    void shouldGenerateInstructorReportSuccessfully() {
+        User instructor = new User("Test", "test@test.com", Role.INSTRUCTOR);
 
-        OpenTextTask openTask = new OpenTextTask();
-        openTask.setTaskOrder(1);
-        openTask.setType(Type.OPEN_TEXT);
+        Course course1 = new Course();
+        course1.setStatus(Status.PUBLISHED);
 
-        SingleChoiceTask singleTask = new SingleChoiceTask();
-        singleTask.setTaskOrder(3); // Gap in sequence
-        singleTask.setType(Type.SINGLE_CHOICE);
+        Course course2 = new Course();
+        course2.setStatus(Status.BUILDING);
 
-        MultipleChoiceTask multipleTask = new MultipleChoiceTask();
-        multipleTask.setTaskOrder(4);
-        multipleTask.setType(Type.MULTIPLE_CHOICE);
+        List<Course> courses = Arrays.asList(course1, course2);
 
-        List<Task> tasks = Arrays.asList(openTask, singleTask, multipleTask);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(instructor));
+        when(courseRepository.findByInstructorId(1L)).thenReturn(courses);
+        when(taskRepository.countByCourseId(any())).thenReturn(3L);
 
-        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
-        when(taskRepository.findByCourseIdOrderByTaskOrder(1L)).thenReturn(tasks);
+        InstructorCoursesReportDTO result = courseService.getInstructorCoursesReport(1L);
+
+        assertEquals(2, result.getCourses().size());
+        assertEquals(1, result.getTotalPublishedCourses());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserNotFoundForReport() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
-            () -> courseService.publishCourse(1L));
+            () -> courseService.getInstructorCoursesReport(1L));
         
-        assertEquals("Tasks must have continuous order sequence", exception.getReason());
+        assertEquals("User not found", exception.getReason());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserNotInstructor() {
+        User user = new User("Test", "test@test.com", Role.STUDENT);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> courseService.getInstructorCoursesReport(1L));
+        
+        assertEquals("User is not an instructor", exception.getReason());
     }
 }

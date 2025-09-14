@@ -20,7 +20,6 @@ public class User {
     // Por questões didáticas, a senha será armazenada em texto plano.
     private String password;
 
-    @Deprecated
     public User() {}
 
     public User(String name, String email, Role role, String password) {
@@ -56,5 +55,9 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+    
+    public void setRole(Role role) {
+        this.role = role;
     }
 }
