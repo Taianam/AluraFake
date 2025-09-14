@@ -3,6 +3,9 @@ package br.com.alura.AluraFake.course;
 import br.com.alura.AluraFake.task.Task;
 import br.com.alura.AluraFake.task.TaskRepository;
 import br.com.alura.AluraFake.task.Type;
+import br.com.alura.AluraFake.user.Role;
+import br.com.alura.AluraFake.user.User;
+import br.com.alura.AluraFake.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,9 @@ public class CourseService {
 
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public void publishCourse(Long courseId) {
         Course course = courseRepository.findById(courseId)
@@ -50,5 +56,35 @@ public class CourseService {
         course.setStatus(Status.PUBLISHED);
         course.setPublishedAt(LocalDateTime.now());
         courseRepository.save(course);
+    }
+
+    public InstructorCoursesReportDTO getInstructorCoursesReport(Long instructorId) {
+        User instructor = userRepository.findById(instructorId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (instructor.getRole() != Role.INSTRUCTOR) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not an instructor");
+        }
+
+        List<Course> courses = courseRepository.findByInstructorId(instructorId);
+        
+        List<InstructorCoursesReportDTO.CourseReportItem> courseItems = courses.stream()
+                .map(course -> {
+                    int taskCount = taskRepository.countByCourseId(course.getId()).intValue();
+                    return new InstructorCoursesReportDTO.CourseReportItem(
+                            course.getId(),
+                            course.getTitle(),
+                            course.getStatus(),
+                            course.getPublishedAt(),
+                            taskCount
+                    );
+                })
+                .collect(Collectors.toList());
+
+        long publishedCoursesCount = courses.stream()
+                .filter(course -> course.getStatus() == Status.PUBLISHED)
+                .count();
+
+        return new InstructorCoursesReportDTO(courseItems, publishedCoursesCount);
     }
 }

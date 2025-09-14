@@ -28,6 +28,9 @@ class CourseServiceTest {
     @Mock
     private TaskRepository taskRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private CourseService courseService;
 
@@ -130,5 +133,54 @@ class CourseServiceTest {
             () -> courseService.publishCourse(1L));
         
         assertEquals("Tasks must have continuous order sequence", exception.getReason());
+    }
+
+    @Test
+    void shouldGenerateInstructorReportSuccessfully() {
+        User instructor = new User();
+        instructor.setRole(Role.INSTRUCTOR);
+
+        Course course1 = new Course();
+        course1.setId(1L);
+        course1.setStatus(Status.PUBLISHED);
+
+        Course course2 = new Course();
+        course2.setId(2L);
+        course2.setStatus(Status.BUILDING);
+
+        List<Course> courses = Arrays.asList(course1, course2);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(instructor));
+        when(courseRepository.findByInstructorId(1L)).thenReturn(courses);
+        when(taskRepository.countByCourseId(1L)).thenReturn(3L);
+        when(taskRepository.countByCourseId(2L)).thenReturn(1L);
+
+        InstructorCoursesReportDTO result = courseService.getInstructorCoursesReport(1L);
+
+        assertEquals(2, result.getCourses().size());
+        assertEquals(1, result.getTotalPublishedCourses());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserNotFoundForReport() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> courseService.getInstructorCoursesReport(1L));
+        
+        assertEquals("User not found", exception.getReason());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserNotInstructor() {
+        User user = new User();
+        user.setRole(Role.STUDENT);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> courseService.getInstructorCoursesReport(1L));
+        
+        assertEquals("User is not an instructor", exception.getReason());
     }
 }
