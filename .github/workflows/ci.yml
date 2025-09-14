@@ -14,10 +14,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up JDK 21
+    - name: Set up JDK 18
       uses: actions/setup-java@v4
       with:
-        java-version: '21'
+        java-version: '18'
         distribution: 'temurin'
         
     - name: Cache Maven dependencies
@@ -39,7 +39,7 @@ jobs:
         reporter: java-junit
         
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
@@ -53,10 +53,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up JDK 21
+    - name: Set up JDK 18
       uses: actions/setup-java@v4
       with:
-        java-version: '21'
+        java-version: '18'
         distribution: 'temurin'
         
     - name: Cache Maven dependencies
@@ -70,7 +70,7 @@ jobs:
       run: ./mvnw clean package -DskipTests
       
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: jar-artifact
         path: target/*.jar
