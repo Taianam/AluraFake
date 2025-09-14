@@ -36,7 +36,7 @@ public class CourseService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Course can only be published if status is BUILDING");
         }
 
-        List<Task> tasks = taskRepository.findByCourseIdOrderByTaskOrder(courseId);
+        List<Task> tasks = taskRepository.findByCourseIdOrderByOrderNumber(courseId);
 
         if (tasks.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Course must have at least one task of each type");

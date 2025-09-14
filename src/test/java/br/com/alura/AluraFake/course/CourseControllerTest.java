@@ -24,6 +24,8 @@ class CourseControllerTest {
     private UserRepository userRepository;
     @MockBean
     private CourseRepository courseRepository;
+    @MockBean
+    private CourseService courseService;
     @Autowired
     private ObjectMapper objectMapper;
 

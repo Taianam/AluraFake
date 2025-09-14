@@ -12,7 +12,7 @@ public class SingleChoiceTask extends Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TaskOption> options;
 
-    protected SingleChoiceTask() {}
+    public SingleChoiceTask() {}
 
     public SingleChoiceTask(String statement, Integer orderNumber, Course course, List<TaskOption> options) {
         super(statement, orderNumber, course, Type.SINGLE_CHOICE);
