@@ -57,4 +57,8 @@ public abstract class Task {
     public Type getType() {
         return type;
     }
+    
+    public Integer getTaskOrder() {
+        return orderNumber;
+    }
 }
