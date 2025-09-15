@@ -1,12 +1,16 @@
 package br.com.alura.AluraFake.infra;
 
-import br.com.alura.AluraFake.course.*;
-import br.com.alura.AluraFake.user.*;
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
+import br.com.alura.AluraFake.course.entity.Course;
+import br.com.alura.AluraFake.course.repository.CourseRepository;
+import br.com.alura.AluraFake.user.entity.Role;
+import br.com.alura.AluraFake.user.entity.User;
+import br.com.alura.AluraFake.user.repository.UserRepository;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
