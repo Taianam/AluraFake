@@ -19,12 +19,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.com.alura.AluraFake.task.Task;
-import br.com.alura.AluraFake.task.TaskRepository;
-import br.com.alura.AluraFake.task.Type;
-import br.com.alura.AluraFake.user.Role;
-import br.com.alura.AluraFake.user.User;
-import br.com.alura.AluraFake.user.UserRepository;
+import br.com.alura.AluraFake.task.entity.Task;
+import br.com.alura.AluraFake.task.repository.TaskRepository;
+import br.com.alura.AluraFake.task.entity.Type;
+import br.com.alura.AluraFake.user.entity.Role;
+import br.com.alura.AluraFake.user.entity.User;
+import br.com.alura.AluraFake.user.repository.UserRepository;
+import br.com.alura.AluraFake.course.entity.*;
+import br.com.alura.AluraFake.course.service.CourseService;
+import br.com.alura.AluraFake.course.repository.CourseRepository;
+import br.com.alura.AluraFake.course.dto.InstructorCoursesReportDTO;
 
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
@@ -47,17 +51,18 @@ class CourseServiceTest {
         course.setStatus(Status.BUILDING);
 
         Task openTask = mock(Task.class);
-        when(openTask.getTaskOrder()).thenReturn(1);
+        when(openTask.getOrderNumber()).thenReturn(1);
         when(openTask.getType()).thenReturn(Type.OPEN_TEXT);
 
         Task singleTask = mock(Task.class);
-        when(singleTask.getTaskOrder()).thenReturn(2);
+        when(singleTask.getOrderNumber()).thenReturn(2);
         when(singleTask.getType()).thenReturn(Type.SINGLE_CHOICE);
 
         Task multipleTask = mock(Task.class);
-        when(multipleTask.getTaskOrder()).thenReturn(3);
+        when(multipleTask.getOrderNumber()).thenReturn(3);
         when(multipleTask.getType()).thenReturn(Type.MULTIPLE_CHOICE);
 
+        // Garantir que as tasks estejam na ordem correta (1, 2, 3)
         List<Task> tasks = Arrays.asList(openTask, singleTask, multipleTask);
 
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));

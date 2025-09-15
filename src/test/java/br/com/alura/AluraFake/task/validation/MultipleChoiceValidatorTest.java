@@ -1,15 +1,15 @@
 package br.com.alura.AluraFake.task.validation;
 
-import br.com.alura.AluraFake.task.NewMultipleChoiceTaskDTO;
-import br.com.alura.AluraFake.task.TaskOptionDTO;
+import br.com.alura.AluraFake.task.service.validation.MultipleChoiceValidator;
+import br.com.alura.AluraFake.task.dto.NewMultipleChoiceTaskRequest;
+import br.com.alura.AluraFake.task.dto.TaskOptionRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class MultipleChoiceValidatorTest {
 
@@ -17,7 +17,13 @@ class MultipleChoiceValidatorTest {
 
     @Test
     void shouldValidateSuccessfully() {
-        NewMultipleChoiceTaskDTO dto = createValidDTO();
+        TaskOptionRequest option1 = new TaskOptionRequest("Java", true);
+        TaskOptionRequest option2 = new TaskOptionRequest("Spring", true);
+        TaskOptionRequest option3 = new TaskOptionRequest("Python", false);
+        
+        NewMultipleChoiceTaskRequest dto = new NewMultipleChoiceTaskRequest(
+            1L, "Test statement", 1, List.of(option1, option2, option3)
+        );
         
         ResponseEntity<?> result = validator.validate(dto);
         
@@ -26,14 +32,13 @@ class MultipleChoiceValidatorTest {
 
     @Test
     void shouldRejectDuplicateOptions() {
-        NewMultipleChoiceTaskDTO dto = mock(NewMultipleChoiceTaskDTO.class);
-        when(dto.getStatement()).thenReturn("Test statement");
+        TaskOptionRequest option1 = new TaskOptionRequest("Java", true);
+        TaskOptionRequest option2 = new TaskOptionRequest("Java", false);
+        TaskOptionRequest option3 = new TaskOptionRequest("Python", false);
         
-        TaskOptionDTO option1 = createOption("Java", true);
-        TaskOptionDTO option2 = createOption("Java", false);
-        TaskOptionDTO option3 = createOption("Ruby", false);
-        
-        when(dto.getOptions()).thenReturn(Arrays.asList(option1, option2, option3));
+        NewMultipleChoiceTaskRequest dto = new NewMultipleChoiceTaskRequest(
+            1L, "Test statement", 1, List.of(option1, option2, option3)
+        );
         
         ResponseEntity<?> result = validator.validate(dto);
         
@@ -42,14 +47,13 @@ class MultipleChoiceValidatorTest {
 
     @Test
     void shouldRejectOnlyOneCorrectOption() {
-        NewMultipleChoiceTaskDTO dto = mock(NewMultipleChoiceTaskDTO.class);
-        when(dto.getStatement()).thenReturn("Test statement");
+        TaskOptionRequest option1 = new TaskOptionRequest("Java", true);
+        TaskOptionRequest option2 = new TaskOptionRequest("Python", false);
+        TaskOptionRequest option3 = new TaskOptionRequest("Ruby", false);
         
-        TaskOptionDTO option1 = createOption("Java", true);
-        TaskOptionDTO option2 = createOption("Python", false);
-        TaskOptionDTO option3 = createOption("Ruby", false);
-        
-        when(dto.getOptions()).thenReturn(Arrays.asList(option1, option2, option3));
+        NewMultipleChoiceTaskRequest dto = new NewMultipleChoiceTaskRequest(
+            1L, "Test statement", 1, List.of(option1, option2, option3)
+        );
         
         ResponseEntity<?> result = validator.validate(dto);
         
@@ -58,36 +62,16 @@ class MultipleChoiceValidatorTest {
 
     @Test
     void shouldRejectAllCorrectOptions() {
-        NewMultipleChoiceTaskDTO dto = mock(NewMultipleChoiceTaskDTO.class);
-        when(dto.getStatement()).thenReturn("Test statement");
+        TaskOptionRequest option1 = new TaskOptionRequest("Java", true);
+        TaskOptionRequest option2 = new TaskOptionRequest("Spring", true);
+        TaskOptionRequest option3 = new TaskOptionRequest("Hibernate", true);
         
-        TaskOptionDTO option1 = createOption("Java", true);
-        TaskOptionDTO option2 = createOption("Python", true);
-        TaskOptionDTO option3 = createOption("Ruby", true);
-        
-        when(dto.getOptions()).thenReturn(Arrays.asList(option1, option2, option3));
+        NewMultipleChoiceTaskRequest dto = new NewMultipleChoiceTaskRequest(
+            1L, "Test statement", 1, List.of(option1, option2, option3)
+        );
         
         ResponseEntity<?> result = validator.validate(dto);
         
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
-    }
-
-    private NewMultipleChoiceTaskDTO createValidDTO() {
-        NewMultipleChoiceTaskDTO dto = mock(NewMultipleChoiceTaskDTO.class);
-        when(dto.getStatement()).thenReturn("Test statement");
-        
-        TaskOptionDTO option1 = createOption("Java", true);
-        TaskOptionDTO option2 = createOption("Spring", true);
-        TaskOptionDTO option3 = createOption("Ruby", false);
-        
-        when(dto.getOptions()).thenReturn(Arrays.asList(option1, option2, option3));
-        return dto;
-    }
-
-    private TaskOptionDTO createOption(String text, boolean isCorrect) {
-        TaskOptionDTO option = mock(TaskOptionDTO.class);
-        when(option.getOption()).thenReturn(text);
-        when(option.getIsCorrect()).thenReturn(isCorrect);
-        return option;
     }
 }

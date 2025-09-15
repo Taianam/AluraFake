@@ -1,12 +1,17 @@
 package br.com.alura.AluraFake.task;
 
-import br.com.alura.AluraFake.course.Course;
-import br.com.alura.AluraFake.course.CourseRepository;
-import br.com.alura.AluraFake.course.Status;
-import br.com.alura.AluraFake.task.validation.MultipleChoiceValidator;
-import br.com.alura.AluraFake.task.validation.SingleChoiceValidator;
-import br.com.alura.AluraFake.user.Role;
-import br.com.alura.AluraFake.user.User;
+import br.com.alura.AluraFake.course.entity.Course;
+import br.com.alura.AluraFake.course.repository.CourseRepository;
+import br.com.alura.AluraFake.course.entity.Status;
+import br.com.alura.AluraFake.task.service.validation.MultipleChoiceValidator;
+import br.com.alura.AluraFake.task.service.validation.SingleChoiceValidator;
+import br.com.alura.AluraFake.task.service.TaskService;
+import br.com.alura.AluraFake.task.service.TaskFactory;
+import br.com.alura.AluraFake.task.repository.TaskRepository;
+import br.com.alura.AluraFake.task.entity.*;
+import br.com.alura.AluraFake.task.dto.*;
+import br.com.alura.AluraFake.user.entity.Role;
+import br.com.alura.AluraFake.user.entity.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -47,16 +52,20 @@ class TaskServiceTest {
         User instructor = new User("Test", "test@test.com", Role.INSTRUCTOR);
         Course course = new Course("Test Course", "Description", instructor);
         
+        Task mockTask = mock(Task.class);
+        when(mockTask.getId()).thenReturn(1L);
+        when(mockTask.getStatement()).thenReturn("Test statement");
+        when(mockTask.getOrderNumber()).thenReturn(1);
+        when(mockTask.getType()).thenReturn(Type.OPEN_TEXT);
+        when(mockTask.getCourse()).thenReturn(course);
+        
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
         when(taskRepository.existsByCourseIdAndStatement(1L, "Test statement")).thenReturn(false);
         when(taskRepository.findMaxOrderByCourseId(1L)).thenReturn(null);
-        when(taskFactory.createOpenTextTask(anyString(), anyInt(), any(Course.class))).thenReturn(mock(Task.class));
+        when(taskFactory.createOpenTextTask(anyString(), anyInt(), any(Course.class))).thenReturn(mockTask);
+        when(taskRepository.save(any(Task.class))).thenReturn(mockTask);
 
-        NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO() {
-            public Long getCourseId() { return 1L; }
-            public String getStatement() { return "Test statement"; }
-            public Integer getOrder() { return 1; }
-        };
+        NewOpenTextTaskRequest dto = new NewOpenTextTaskRequest(1L, "Test statement", 1);
         
         ResponseEntity<?> response = taskService.createOpenTextTask(dto);
 
@@ -72,11 +81,7 @@ class TaskServiceTest {
         
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
 
-        NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO() {
-            public Long getCourseId() { return 1L; }
-            public String getStatement() { return "Test statement"; }
-            public Integer getOrder() { return 1; }
-        };
+        NewOpenTextTaskRequest dto = new NewOpenTextTaskRequest(1L, "Test statement", 1);
         
         ResponseEntity<?> response = taskService.createOpenTextTask(dto);
 
@@ -91,11 +96,7 @@ class TaskServiceTest {
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
         when(taskRepository.existsByCourseIdAndStatement(1L, "Test statement")).thenReturn(true);
 
-        NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO() {
-            public Long getCourseId() { return 1L; }
-            public String getStatement() { return "Test statement"; }
-            public Integer getOrder() { return 1; }
-        };
+        NewOpenTextTaskRequest dto = new NewOpenTextTaskRequest(1L, "Test statement", 1);
         
         ResponseEntity<?> response = taskService.createOpenTextTask(dto);
 
@@ -111,11 +112,7 @@ class TaskServiceTest {
         when(taskRepository.existsByCourseIdAndStatement(1L, "Test statement")).thenReturn(false);
         when(taskRepository.findMaxOrderByCourseId(1L)).thenReturn(2);
 
-        NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO() {
-            public Long getCourseId() { return 1L; }
-            public String getStatement() { return "Test statement"; }
-            public Integer getOrder() { return 5; }
-        };
+        NewOpenTextTaskRequest dto = new NewOpenTextTaskRequest(1L, "Test statement", 5);
         
         ResponseEntity<?> response = taskService.createOpenTextTask(dto);
 
@@ -131,12 +128,13 @@ class TaskServiceTest {
         when(taskRepository.existsByCourseIdAndStatement(1L, "Test statement")).thenReturn(false);
         when(taskRepository.findMaxOrderByCourseId(1L)).thenReturn(null);
         when(singleChoiceValidator.validate(any())).thenReturn(null);
-        when(taskFactory.createSingleChoiceTask(anyString(), anyInt(), any(Course.class), anyList())).thenReturn(mock(Task.class));
+        Task mockTask = mock(Task.class);
+        when(mockTask.getId()).thenReturn(1L);
+        when(mockTask.getCourse()).thenReturn(course);
+        when(taskFactory.createSingleChoiceTask(anyString(), anyInt(), any(Course.class), anyList())).thenReturn(mockTask);
+        when(taskRepository.save(any(Task.class))).thenReturn(mockTask);
 
-        NewSingleChoiceTaskDTO dto = mock(NewSingleChoiceTaskDTO.class);
-        when(dto.getCourseId()).thenReturn(1L);
-        when(dto.getStatement()).thenReturn("Test statement");
-        when(dto.getOrder()).thenReturn(1);
+        NewSingleChoiceTaskRequest dto = new NewSingleChoiceTaskRequest(1L, "Test statement", 1, List.of());
         
         ResponseEntity<?> response = taskService.createSingleChoiceTask(dto);
 
@@ -153,12 +151,13 @@ class TaskServiceTest {
         when(taskRepository.existsByCourseIdAndStatement(1L, "Test statement")).thenReturn(false);
         when(taskRepository.findMaxOrderByCourseId(1L)).thenReturn(null);
         when(multipleChoiceValidator.validate(any())).thenReturn(null);
-        when(taskFactory.createMultipleChoiceTask(anyString(), anyInt(), any(Course.class), anyList())).thenReturn(mock(Task.class));
+        Task mockTask = mock(Task.class);
+        when(mockTask.getId()).thenReturn(1L);
+        when(mockTask.getCourse()).thenReturn(course);
+        when(taskFactory.createMultipleChoiceTask(anyString(), anyInt(), any(Course.class), anyList())).thenReturn(mockTask);
+        when(taskRepository.save(any(Task.class))).thenReturn(mockTask);
 
-        NewMultipleChoiceTaskDTO dto = mock(NewMultipleChoiceTaskDTO.class);
-        when(dto.getCourseId()).thenReturn(1L);
-        when(dto.getStatement()).thenReturn("Test statement");
-        when(dto.getOrder()).thenReturn(1);
+        NewMultipleChoiceTaskRequest dto = new NewMultipleChoiceTaskRequest(1L, "Test statement", 1, List.of());
         
         ResponseEntity<?> response = taskService.createMultipleChoiceTask(dto);
 
@@ -178,13 +177,13 @@ class TaskServiceTest {
         when(taskRepository.existsByCourseIdAndStatement(1L, "Test statement")).thenReturn(false);
         when(taskRepository.findMaxOrderByCourseId(1L)).thenReturn(3);
         when(taskRepository.findByCourseIdAndOrderNumberGreaterThanEqual(1L, 2)).thenReturn(List.of(existingTask));
-        when(taskFactory.createOpenTextTask(anyString(), anyInt(), any(Course.class))).thenReturn(mock(Task.class));
+        Task mockTask = mock(Task.class);
+        when(mockTask.getId()).thenReturn(1L);
+        when(mockTask.getCourse()).thenReturn(course);
+        when(taskFactory.createOpenTextTask(anyString(), anyInt(), any(Course.class))).thenReturn(mockTask);
+        when(taskRepository.save(any(Task.class))).thenReturn(mockTask);
 
-        NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO() {
-            public Long getCourseId() { return 1L; }
-            public String getStatement() { return "Test statement"; }
-            public Integer getOrder() { return 2; }
-        };
+        NewOpenTextTaskRequest dto = new NewOpenTextTaskRequest(1L, "Test statement", 2);
         
         ResponseEntity<?> response = taskService.createOpenTextTask(dto);
 
