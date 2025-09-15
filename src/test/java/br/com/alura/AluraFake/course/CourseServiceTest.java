@@ -82,7 +82,7 @@ class CourseServiceTest {
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
             () -> courseService.publishCourse(1L));
         
-        assertEquals("Course not found", exception.getReason());
+        assertEquals("Curso não encontrado", exception.getReason());
     }
 
     @Test
@@ -95,7 +95,7 @@ class CourseServiceTest {
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
             () -> courseService.publishCourse(1L));
         
-        assertEquals("Course can only be published if status is BUILDING", exception.getReason());
+        assertEquals("Curso só pode ser publicado se o status for BUILDING", exception.getReason());
     }
 
     @Test
@@ -114,7 +114,7 @@ class CourseServiceTest {
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
             () -> courseService.publishCourse(1L));
         
-        assertEquals("Course must have at least one task of each type", exception.getReason());
+        assertEquals("Curso deve ter pelo menos uma atividade de cada tipo", exception.getReason());
     }
 
     @Test
@@ -146,7 +146,7 @@ class CourseServiceTest {
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
             () -> courseService.getInstructorCoursesReport(1L));
         
-        assertEquals("User not found", exception.getReason());
+        assertEquals("Usuário não encontrado", exception.getReason());
     }
 
     @Test
@@ -158,6 +158,6 @@ class CourseServiceTest {
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
             () -> courseService.getInstructorCoursesReport(1L));
         
-        assertEquals("User is not an instructor", exception.getReason());
+        assertEquals("Usuário não é um instrutor", exception.getReason());
     }
 }
